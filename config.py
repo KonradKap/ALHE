@@ -1,10 +1,13 @@
 from enum import Enum
 
+_LAMBDA = lambda x: x
+
 class Config(Enum):
-    nutrients_weights = [
-        staticmethod(lambda x: x),
-        staticmethod(lambda x: x),
-        staticmethod(lambda x: x),
-        staticmethod(lambda x: x)
+    NUTRIENTS_WEIGHTS = [
+        _LAMBDA,
+        _LAMBDA,
+        _LAMBDA,
+        _LAMBDA,
     ]
-    variety_weight = staticmethod(lambda x: x)
+    VARIETY_WEIGHT = _LAMBDA
+    MAX_ITERATIONS = 10000
