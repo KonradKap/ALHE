@@ -12,4 +12,4 @@ class Config(Enum):
         _LAMBDA,
     ]
     VARIETY_WEIGHT = _LAMBDA
-    MAX_ITERATIONS = 10000
+    MAX_ITERATIONS = 1000
