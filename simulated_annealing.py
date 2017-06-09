@@ -11,18 +11,18 @@ from enum import Enum
 
 def simulated_annealing(number_of_days, goal, food, config):
     current = _get_starting_point(number_of_days, len(food))
-    for i in range(1, config.MAX_ITERATIONS.value + 1):
-        temperature = (config.MAX_ITERATIONS.value + 1)/float(i)
+    for i in range(1, config['MAX_ITERATIONS'] + 1):
+        temperature = (config['MAX_ITERATIONS'] + 1)/float(i)
         current = _make_move(current, int(temperature), goal, food, config)
     return current
 
 def target_function(diet, goal, food, config):
     eaten_per_day = _get_eaten_per_day(diet, food)
-    daily = sum(_evaluate_day(day, goal, config.NUTRIENTS_WEIGHTS) for day in eaten_per_day)
-    variety = sum(_evaluate_variety(day, config.VARIETY_WEIGHT) for day in zip(*diet))
+    daily = sum(_evaluate_day(day, goal, config['NUTRIENTS_WEIGHTS']) for day in eaten_per_day)
+    variety = sum(_evaluate_variety(day, config['VARIETY_WEIGHT']) for day in zip(*diet))
     period = _evaluate_period(zip(*eaten_per_day),
                               [g*len(diet) for g in goal],
-                              config.NUTRIENTS_WEIGHTS)
+                              config['NUTRIENTS_WEIGHTS'])
     return daily + variety + period
 
 def calculate_nutrients(diet, food):
@@ -80,7 +80,7 @@ def _get_eaten_per_day(diet, foods):
 def _evaluate_period(nutrients_period, goals_period, weight_functions):
     return sum(weight_function(abs(sum(nutrients) - goal_period))
                for nutrients, goal_period, weight_function
-               in zip(nutrients_period, goals_period, weight_functions.value))
+               in zip(nutrients_period, goals_period, weight_functions))
 
 def _evaluate_variety(daily_nutrients, weight_function):
     diff_sum = sum(abs(a - b)
@@ -91,7 +91,7 @@ def _evaluate_variety(daily_nutrients, weight_function):
 def _evaluate_day(nutrients, daily_goals, weight_functions):
     return sum(weight_function(abs(nutrient - daily_goal))
                for nutrient, daily_goal, weight_function
-               in zip(nutrients, daily_goals, weight_functions.value))
+               in zip(nutrients, daily_goals, weight_functions))
 
 class SimulatedAnnealingTests(unittest.TestCase):
     self_function = staticmethod(lambda x: x)
@@ -195,9 +195,10 @@ class SimulatedAnnealingTests(unittest.TestCase):
         food.update({'Stek'   : [1, 1, 1, 1]})
 
         function = self.self_function
-        class ConfigMock(Enum):
-            NUTRIENTS_WEIGHTS = [function] * 4
-            VARIETY_WEIGHT = function
+        config_mock = {
+            'NUTRIENTS_WEIGHTS' : [function] * 4,
+            'VARIETY_WEIGHT' : function
+        }
 
         result = target_function(diet, goals, food, ConfigMock)
         self.assertEqual(1101, result)
