@@ -1,3 +1,5 @@
+#!/bin/python3
+
 import itertools
 import unittest
 import math
@@ -27,8 +29,7 @@ def calculate_nutrients(diet, food):
     return _calculate_nutrients_from_eaten(_get_eaten_per_day(diet, food))
 
 def _make_move(state, temperature, goal, food, config):
-    neighbours = _get_neighbours(state, temperature)
-    random_neighbour = neighbours[randint(0, len(neighbours) - 1)]
+    random_neighbour = _get_random_neighbour(state, temperature)
     delta_target = (target_function(state, goal, food, config)
                     - target_function(random_neighbour, goal, food, config))
     if delta_target > 0:
@@ -39,6 +40,14 @@ def _make_move(state, temperature, goal, food, config):
 
 def _get_starting_point(number_of_days, number_of_food): #TODO: Think of a better starting point
     return [[0 for _ in range(number_of_food)] for _ in range(number_of_days)]
+
+def _get_random_neighbour(diet, temperature):
+    day = randint(0, len(diet) - 1)
+    food = randint(0, len(diet[day]) - 1)
+    increment = randint(0, 1)
+    new_state = deepcopy(diet)
+    new_state[day][food] += temperature * (1 if increment == 1 else -1)
+    return new_state
 
 def _get_neighbours(diet, jump):
     def _add_to_results(results, day_index, index, jump):
@@ -76,7 +85,7 @@ def _evaluate_variety(daily_nutrients, weight_function):
     diff_sum = sum(abs(a - b)
                    for a, b in itertools.combinations(daily_nutrients, r=2)
                    if a != 0 and b != 0)
-    return weight_function(sum(daily_nutrients) - diff_sum)
+    return weight_function(sum(daily_nutrients) - diff_sum/len(daily_nutrients))
 
 def _evaluate_day(nutrients, daily_goals, weight_functions):
     return sum(weight_function(abs(nutrient - daily_goal))
@@ -127,22 +136,22 @@ class SimulatedAnnealingTests(unittest.TestCase):
     def test_evaluate_variety_1(self):
         nutrients = [1, 6, 9]
         evaluated = _evaluate_variety(nutrients, self.self_function)
-        self.assertEqual(0, evaluated)
+        self.assertAlmostEqual(10 + 2/3.0, evaluated)
 
     def test_evaluate_variety_2(self):
         nutrients = [0, 6, 9]
         evaluated = _evaluate_variety(nutrients, self.self_function)
-        self.assertEqual(12, evaluated)
+        self.assertAlmostEqual(14.0, evaluated)
 
     def test_evaluate_variety_3(self):
         nutrients = [0, 6, 3, 2]
         evaluated = _evaluate_variety(nutrients, self.square_function)
-        self.assertEqual(9, evaluated)
+        self.assertAlmostEqual(81, evaluated)
 
     def test_evaluate_variety_4(self):
         nutrients = [4, 1, 3]
         evaluated = _evaluate_variety(nutrients, self.self_function)
-        self.assertEqual(2, evaluated)
+        self.assertAlmostEqual(6.0, evaluated)
 
     def test_evaluate_period_1(self):
         nutrients = [[1, 2, 3], [3, 2, 1], [1, 1, 1], [2, 2, 2]]
@@ -190,7 +199,7 @@ class SimulatedAnnealingTests(unittest.TestCase):
             VARIETY_WEIGHT = function
 
         result = target_function(diet, goals, food, ConfigMock)
-        self.assertEqual(1073, result)
+        self.assertEqual(1101, result)
 
     def test_get_neighbours_1(self):
         diet = [[1, 2], [3, 4]]
