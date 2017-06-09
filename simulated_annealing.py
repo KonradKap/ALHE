@@ -46,7 +46,8 @@ def _get_random_neighbour(diet, temperature):
     food = randint(0, len(diet[day]) - 1)
     increment = randint(0, 1)
     new_state = deepcopy(diet)
-    new_state[day][food] += temperature * (1 if increment == 1 else -1)
+    new_value = new_state[day][food] + temperature * (1 if increment == 1 else -1)
+    new_state[day][food] = new_value if new_value >= 0 else 0
     return new_state
 
 def _get_neighbours(diet, jump):
