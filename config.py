@@ -2,6 +2,8 @@ from enum import Enum
 
 _LAMBDA = lambda x: x
 
+FILE_NAME = 'resources/csv.csv'
+
 class Config(Enum):
     NUTRIENTS_WEIGHTS = [
         _LAMBDA,
