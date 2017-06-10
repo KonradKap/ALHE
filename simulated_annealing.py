@@ -17,12 +17,10 @@ _PLOT_POINTS = []
 
 def simulated_annealing(number_of_days, goal, food, config):
     current = _get_starting_point(number_of_days, len(food))
-    temperature = config['TEMPERATURE']
     for i in range(1, config['MAX_ITERATIONS'] + 1):
-        current = _make_move(current, int(temperature), goal, food, config)
-        temperature *= config['COOLING']
+        temperature = config['TEMPERATURE'] / float(i)
+        current = _make_move(current, temperature, goal, food, config)
 
-    #plt.figure(figsize=(config['MAX_ITERATIONS']/256, 20))
     plt.plot(_PLOT_POINTS)
     plt.savefig(get_plot_name(config))
     return current
@@ -40,16 +38,21 @@ def calculate_nutrients(diet, food):
     return _calculate_nutrients_from_eaten(_get_eaten_per_day(diet, food))
 
 def _make_move(state, temperature, goal, food, config):
-    random_neighbour = _get_random_neighbour(state, temperature)
+    random_neighbour = _get_random_neighbour(state)
     current_target = target_function(state, goal, food, config)
-    _PLOT_POINTS.append(current_target)
-    delta_target = (current_target
-                    - target_function(random_neighbour, goal, food, config))
+    next_target = target_function(random_neighbour, goal, food, config)
+    delta_target = current_target - next_target
     if delta_target >= 0:
+        _PLOT_POINTS.append(next_target)
         return random_neighbour
-    delta_target *= -(10.0 / delta_target) * (temperature / config['TEMPERATURE'])
     acceptance = math.exp(delta_target / temperature)
-    return random_neighbour if random() < acceptance else state
+
+    if random() < acceptance:
+        _PLOT_POINTS.append(next_target)
+        return random_neighbour
+
+    _PLOT_POINTS.append(current_target)
+    return state
 
 def _get_starting_point(number_of_days, number_of_food): #TODO: Think of a better starting point
     return [[0 for _ in range(number_of_food)] for _ in range(number_of_days)]
@@ -60,13 +63,12 @@ def _get_random_params(diet):
     increment = randint(0, 1)
     return day, food, increment
 
-def _get_random_neighbour(diet, temperature):
-    for t in range(temperature):
+def _get_random_neighbour(diet):
+    day, food, increment = _get_random_params(diet)
+    while(diet[day][food] == 0 and increment == 0):
         day, food, increment = _get_random_params(diet)
-        while(diet[day][food] == 0 and increment == 0):
-            day, food, increment = _get_random_params(diet)
-        new_state = deepcopy(diet)
-        new_state[day][food] += (1 if increment == 1 else -1)
+    new_state = deepcopy(diet)
+    new_state[day][food] += (1 if increment == 1 else -1)
     return new_state
 
 def _get_neighbours(diet, jump):
