@@ -3,17 +3,31 @@
 import itertools
 import unittest
 import math
+import matplotlib.pyplot as plt
+
 from argparse import Namespace
 from collections import OrderedDict, defaultdict
 from copy import deepcopy
 from random import randint, random
 from enum import Enum
 
+from config import get_plot_name
+
+_PLOT_POINTS = []
+_DELTAS = []
+
 def simulated_annealing(number_of_days, goal, food, config):
     current = _get_starting_point(number_of_days, len(food))
+    temperature = config['TEMPERATURE']
     for i in range(1, config['MAX_ITERATIONS'] + 1):
-        temperature = (config['MAX_ITERATIONS'] + 1)/float(i)
         current = _make_move(current, int(temperature), goal, food, config)
+        temperature *= config['COOLING']
+
+    plt.figure(figsize=(config['MAX_ITERATIONS']/256, 20))
+    plt.plot(_PLOT_POINTS)
+    plt.savefig(get_plot_name(config))
+    plt.plot(_DELTAS)
+    plt.savefig('delta.png')
     return current
 
 def target_function(diet, goal, food, config):
@@ -30,25 +44,34 @@ def calculate_nutrients(diet, food):
 
 def _make_move(state, temperature, goal, food, config):
     random_neighbour = _get_random_neighbour(state, temperature)
-    delta_target = (target_function(state, goal, food, config)
+    current_target = target_function(state, goal, food, config)
+    _PLOT_POINTS.append(current_target)
+    delta_target = (current_target
                     - target_function(random_neighbour, goal, food, config))
-    if delta_target > 0:
+    _DELTAS.append(delta_target)
+    if delta_target >= 0:
         return random_neighbour
-    temperature = 10
     acceptance = math.exp(delta_target / temperature)
     return random_neighbour if random() < acceptance else state
 
 def _get_starting_point(number_of_days, number_of_food): #TODO: Think of a better starting point
     return [[0 for _ in range(number_of_food)] for _ in range(number_of_days)]
 
-def _get_random_neighbour(diet, temperature):
+def _get_random_params(diet):
     day = randint(0, len(diet) - 1)
     food = randint(0, len(diet[day]) - 1)
     increment = randint(0, 1)
+    return day, food, increment
+
+def _get_random_neighbour(diet, temperature):
+    if temperature <= 0:
+        return diet
+    day, food, increment = _get_random_params(diet)
+    while(diet[day][food] == 0 and increment == 0):
+        day, food, increment = _get_random_params(diet)
     new_state = deepcopy(diet)
-    new_value = new_state[day][food] + temperature * (1 if increment == 1 else -1)
-    new_state[day][food] = new_value if new_value >= 0 else 0
-    return new_state
+    new_state[day][food] += (1 if increment == 1 else -1)
+    return _get_random_neighbour(new_state, temperature - 1)
 
 def _get_neighbours(diet, jump):
     def _add_to_results(results, day_index, index, jump):

@@ -13,7 +13,7 @@ GOAL = [2500, 60, 340, 80]
 MEAL_PARSER = MealParser('resources/csv.csv')
 FOOD = MEAL_PARSER.read_meals_from_file()
 DAYS = 10
-REPEATS = 1
+REPEATS = 4 
 
 class Unbuffered(object):
     def __init__(self, stream):
@@ -37,14 +37,17 @@ class Function:
         return self.type_.format(*self.params)
 
 def generate_functions():
-    linear_functions = [Function(lambda x: a*x, [a], '{}*x')
-                        for a in range(1, 6)]
-    logarithmic_functions = [Function(lambda x: a*math.log(abs(x) if x > 1 else 1), [a], '{}*log(x)')
-                             for a in range(1, 6)]
-    square_functions = [Function(lambda x: a*x*x + b*x, [a, b], '{}*x^2 + {}*x')
-                        for a in range(1, 6)
-                        for b in range(1, 6)]
-    return linear_functions + logarithmic_functions + square_functions
+    #linear_functions = [Function(lambda x: a/2.0*x, [a/2.0], '{}*x')
+    #                    for a in range(1, 13)]
+    #logarithmic_functions = [Function(lambda x: (a/2.0)*math.log(abs(x) if x > 1 else 1), [a/2.0], '{}*log(x)')
+    #                         for a in range(1, 13)]
+    #square_functions = [Function(lambda x: a*x*x + b*x, [a, b], '{}*x^2 + {}*x')
+    #                    for a in range(1, 6)
+    #                    for b in range(1, 6)]
+    #return linear_functions + logarithmic_functions# + square_functions
+    return [Function(lambda x: a * math.arctan(x) + b, [a, b], '{}*arctan(x)+{}')
+            for a in range(1, 6)
+            for b in range(1, 6)]
 
 def main():
     sys.stdout = Unbuffered(sys.stdout)
