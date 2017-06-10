@@ -14,7 +14,6 @@ from enum import Enum
 from config import get_plot_name
 
 _PLOT_POINTS = []
-_DELTAS = []
 
 def simulated_annealing(number_of_days, goal, food, config):
     current = _get_starting_point(number_of_days, len(food))
@@ -23,11 +22,9 @@ def simulated_annealing(number_of_days, goal, food, config):
         current = _make_move(current, int(temperature), goal, food, config)
         temperature *= config['COOLING']
 
-    plt.figure(figsize=(config['MAX_ITERATIONS']/256, 20))
+    #plt.figure(figsize=(config['MAX_ITERATIONS']/256, 20))
     plt.plot(_PLOT_POINTS)
     plt.savefig(get_plot_name(config))
-    plt.plot(_DELTAS)
-    plt.savefig('delta.png')
     return current
 
 def target_function(diet, goal, food, config):
@@ -48,9 +45,9 @@ def _make_move(state, temperature, goal, food, config):
     _PLOT_POINTS.append(current_target)
     delta_target = (current_target
                     - target_function(random_neighbour, goal, food, config))
-    _DELTAS.append(delta_target)
     if delta_target >= 0:
         return random_neighbour
+    delta_target *= -(10.0 / delta_target) * (temperature / config['TEMPERATURE'])
     acceptance = math.exp(delta_target / temperature)
     return random_neighbour if random() < acceptance else state
 
@@ -64,14 +61,13 @@ def _get_random_params(diet):
     return day, food, increment
 
 def _get_random_neighbour(diet, temperature):
-    if temperature <= 0:
-        return diet
-    day, food, increment = _get_random_params(diet)
-    while(diet[day][food] == 0 and increment == 0):
+    for t in range(temperature):
         day, food, increment = _get_random_params(diet)
-    new_state = deepcopy(diet)
-    new_state[day][food] += (1 if increment == 1 else -1)
-    return _get_random_neighbour(new_state, temperature - 1)
+        while(diet[day][food] == 0 and increment == 0):
+            day, food, increment = _get_random_params(diet)
+        new_state = deepcopy(diet)
+        new_state[day][food] += (1 if increment == 1 else -1)
+    return new_state
 
 def _get_neighbours(diet, jump):
     def _add_to_results(results, day_index, index, jump):
