@@ -4,7 +4,6 @@ from collections import OrderedDict
 TABLE_NAME = {'MEAL': 0, 'CALORIES': 1, 'PROTEINS': 2, 'CARBS': 3, 'FATS': 4, 'AMOUNT': 5}
 
 class MealParser(object):
-
 	def __init__(self, meals_file):
 		self.file = meals_file
 		self.meals_dict = OrderedDict()
@@ -17,7 +16,6 @@ class MealParser(object):
 		return meal[0], meal[1:5]
 
 	def read_meals_from_file(self):
-
 		file = open(self.file, 'r')
 		columns = file.readline().split(';')
 		given_order = [-1] * 5
@@ -44,6 +42,3 @@ class MealParser(object):
 			except ValueError:
 				raise ValueError('Wrong value. Make sure you use integer.')
 		return new_values
-#parser = Meal_Parser(file_name)
-#print parser.read_meals_from_file()
-#parser._in_order([1,2,3,4,5])

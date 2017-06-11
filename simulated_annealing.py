@@ -134,24 +134,24 @@ class SimulatedAnnealingTests(unittest.TestCase):
     def test_evaluate_day_1(self):
         day = [3, 5, 6, 12]
         goal = [3, 5, 6, 12]
-        functions = Namespace(**{'value' : [self.negate_function]*4})
+        functions = [self.negate_function]*4
         evaluated = _evaluate_day(day, goal, functions)
         self.assertEqual(0, evaluated)
 
     def test_evaluate_day_2(self):
         day = [3, 5, 6, 12]
         goal = [5, 2, 1, 0]
-        functions = Namespace(**{'value' : [self.self_function]*4})
+        functions = [self.self_function]*4
         evaluated = _evaluate_day(day, goal, functions)
         self.assertEqual(22, evaluated)
 
     def test_evaluate_day_3(self):
         day = [3, 5, 6, 12]
         goal = [3, 0, 4, 2]
-        functions = Namespace(**{'value' : [self.self_function,
-                                            self.square_function,
-                                            self.negate_function,
-                                            self.halve_function]})
+        functions = [self.self_function,
+                     self.square_function,
+                     self.negate_function,
+                     self.halve_function]
         evaluated = _evaluate_day(day, goal, functions)
         self.assertEqual(28, evaluated)
 
@@ -178,17 +178,17 @@ class SimulatedAnnealingTests(unittest.TestCase):
     def test_evaluate_period_1(self):
         nutrients = [[1, 2, 3], [3, 2, 1], [1, 1, 1], [2, 2, 2]]
         goals = [6, 3, 0, 1]
-        functions = Namespace(**{'value' : [self.self_function]*4})
+        functions = [self.self_function]*4
         evaluated = _evaluate_period(nutrients, goals, functions)
         self.assertEqual(11, evaluated)
 
     def test_evaluate_period_2(self):
         nutrients = [[1, 2, 3], [3, 2, 1], [1, 1, 1], [2, 2, 2]]
         goals = [6, 3, 0, 1]
-        functions = Namespace(**{'value' : [self.self_function,
-                                            self.square_function,
-                                            self.negate_function,
-                                            self.halve_function]})
+        functions = [self.self_function,
+                     self.square_function,
+                     self.negate_function,
+                     self.halve_function]
         evaluated = _evaluate_period(nutrients, goals, functions)
         self.assertEqual(8.5, evaluated)
 
@@ -221,7 +221,7 @@ class SimulatedAnnealingTests(unittest.TestCase):
             'VARIETY_WEIGHT' : function
         }
 
-        result = target_function(diet, goals, food, ConfigMock)
+        result = target_function(diet, goals, food, config_mock)
         self.assertEqual(1101, result)
 
     def test_get_neighbours_1(self):
@@ -261,6 +261,10 @@ class SimulatedAnnealingTests(unittest.TestCase):
             [[5, 5, 8]],
         ]
         self.assertTrue(self.is_permutation(neighbours, _get_neighbours(diet, 3)))
+
+    def test_get_random_neighbour_1(self):
+        diet = [[5, 5, 5]]
+        self.assertTrue(_get_random_neighbour(diet) in _get_neighbours(diet, 1))
 
 if __name__ == '__main__':
     unittest.main()
